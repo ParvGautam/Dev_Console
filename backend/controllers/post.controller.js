@@ -5,26 +5,68 @@ import {v2 as cloudinary} from "cloudinary"
 
 export const createPost = async (req, res) => {
 	try {
-		const { text } = req.body;
+		const { text, images, codeSnippet, language, postType, blocks } = req.body;
 		let { img } = req.body;
 		const userId = req.user._id.toString();
 
 		const user = await User.findById(userId);
 		if (!user) return res.status(404).json({ message: "User not found" });
 
-		if (!text && !img) {
-			return res.status(400).json({ error: "Post must have text or image" });
+		// If blocks are provided, handle mixed content post
+		let processedBlocks = [];
+		if (Array.isArray(blocks) && blocks.length > 0) {
+			for (const block of blocks) {
+				if (block.type === "image" && block.imageData) {
+					const uploadedResponse = await cloudinary.uploader.upload(block.imageData);
+					processedBlocks.push({
+						type: "image",
+						imageUrl: uploadedResponse.secure_url
+					});
+				} else if (block.type === "code") {
+					processedBlocks.push({
+						type: "code",
+						codeSnippet: block.codeSnippet,
+						language: block.language || "javascript"
+					});
+				}
+			}
 		}
 
+		// Validate post content based on type (legacy)
+		if (!blocks && postType === "text" && !text) {
+			return res.status(400).json({ error: "Text post must have content" });
+		}
+		if (!blocks && postType === "code" && !codeSnippet) {
+			return res.status(400).json({ error: "Code post must have code snippet" });
+		}
+		if (!blocks && postType === "image" && (!images || images.length === 0)) {
+			return res.status(400).json({ error: "Image post must have at least one image" });
+		}
+
+		// Handle single image upload (backward compatibility)
 		if (img) {
 			const uploadedResponse = await cloudinary.uploader.upload(img);
 			img = uploadedResponse.secure_url;
+		}
+
+		// Handle multiple images upload (legacy)
+		let uploadedImages = [];
+		if (images && images.length > 0) {
+			for (const imageData of images) {
+				const uploadedResponse = await cloudinary.uploader.upload(imageData);
+				uploadedImages.push(uploadedResponse.secure_url);
+			}
 		}
 
 		const newPost = new Post({
 			user: userId,
 			text,
 			img,
+			images: uploadedImages,
+			codeSnippet,
+			language: language || "javascript",
+			postType: postType || "text",
+			blocks: processedBlocks.length > 0 ? processedBlocks : undefined
 		});
 
 		await newPost.save();
@@ -44,9 +86,18 @@ export const deltePost=async (req,res)=>{
             return res.status(404).json({error: "You are not authorized to delete this post"})
         }
 
+        // Delete single image
         if(post.img){
             const imgId=post.img.split("/").pop().split(".")[0];
             await cloudinary.uploader.destroy(imgId);
+        }
+
+        // Delete multiple images
+        if(post.images && post.images.length > 0){
+            for(const imageUrl of post.images){
+                const imgId=imageUrl.split("/").pop().split(".")[0];
+                await cloudinary.uploader.destroy(imgId);
+            }
         }
 
         await Post.findByIdAndDelete(req.params.id);

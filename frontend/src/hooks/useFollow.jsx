@@ -29,7 +29,8 @@ const useFollow = () => {
 			]);
 		},
 		onError: (error) => {
-			toast.error(error.message);
+			toast.error("Something Went Wrong");
+			console.error(error.message);
 		},
 	});
 

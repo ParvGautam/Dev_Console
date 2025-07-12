@@ -31,7 +31,8 @@ const useUpdateUserProfile = () => {
 			]);
 		},
 		onError: (error) => {
-			toast.error(error.message);
+			toast.error("Something went wrong");
+			console.error(error.message);
 		},
 	});
 

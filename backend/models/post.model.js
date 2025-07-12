@@ -1,38 +1,68 @@
- import mongoose from 'mongoose';
+import mongoose from 'mongoose';
 
- const postSchema= new mongoose.Schema({
-    user:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'User',
-        required:true
-    },
-    text:{
-        type:String,
-    },
-    img:{
-        type:String
-    },
-    likes:[
-        {
-            type:mongoose.Schema.Types.ObjectId,
-            ref:'User'
-        }
-    ],
-    comments:[
-        {
-            text:{
-                type:String,
-                required:true
-            },
-            user:{
-                type:mongoose.Schema.Types.ObjectId,
-                ref:'User',
-                required:true
-            }
-        }
-    ]
- },{timestamps:true})
+const blockSchema = new mongoose.Schema({
+  type: {
+    type: String,
+    enum: ['code', 'image'],
+    required: true
+  },
+  codeSnippet: String,
+  language: {
+    type: String,
+    default: 'javascript'
+  },
+  imageUrl: String
+}, { _id: false });
 
- const Post=mongoose.model("Post", postSchema);
+const postSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  text: {
+    type: String,
+  },
+  img: {
+    type: String
+  },
+  images: [{
+    type: String
+  }],
+  codeSnippet: {
+    type: String
+  },
+  language: {
+    type: String,
+    default: 'javascript'
+  },
+  postType: {
+    type: String,
+    enum: ['text', 'code', 'image'],
+    default: 'text'
+  },
+  blocks: [blockSchema],
+  likes: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }
+  ],
+  comments: [
+    {
+      text: {
+        type: String,
+        required: true
+      },
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+      }
+    }
+  ]
+}, { timestamps: true })
 
- export default Post;
+const Post = mongoose.model("Post", postSchema);
+
+export default Post;

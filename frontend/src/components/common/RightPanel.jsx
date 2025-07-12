@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 
 import useFollow from "../../hooks/useFollow";
@@ -7,91 +7,93 @@ import RightPanelSkeleton from "../skeletons/RightPanelSkeleton";
 import LoadingSpinner from "./LoadingSpinner";
 
 const RightPanel = () => {
-	const navigate = useNavigate();// Navigation hook
+  const { data: suggestedUsers, isLoading, refetch } = useQuery({
+    queryKey: ["suggestedUsers"],
+    queryFn: async () => {
+      try {
+        const res = await fetch("/api/users/suggested");
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || "Something went wrong!");
+        }
+        return data;
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    },
+  });
 
-	const { data: suggestedUsers, isLoading } = useQuery({
-		queryKey: ["suggestedUsers"],
-		queryFn: async () => {
-			try {
-				const res = await fetch("/api/users/suggested");
-				const data = await res.json();
-				if (!res.ok) {
-					throw new Error(data.error || "Something went wrong!");
-				}
-				return data;
-			} catch (error) {
-				throw new Error(error.message);
-			}
-		},
-	});
+  const { follow, isPending } = useFollow();
 
-	const { follow, isPending } = useFollow();
+  const handleFollow = async (userId, e) => {
+    e.preventDefault();
+    await follow(userId);
+    // Refetch suggested users after following
+    refetch();
+  };
 
-	if (suggestedUsers?.length === 0) return <div className='md:w-64 w-0'></div>;
+  if (suggestedUsers?.length === 0) return <div className='md:w-64 w-0'></div>;
 
-	return (
-		<div className='hidden lg:block my-4 mx-2'>
-			<div className='bg-[#16181C] p-4 rounded-md sticky top-2'>
-				<p className='font-bold'>Who to follow</p>
-				<div className='flex flex-col gap-4'>
-					{/* Suggested Users Skeleton */}
-					{isLoading && (
-						<>
-							<RightPanelSkeleton />
-							<RightPanelSkeleton />
-							<RightPanelSkeleton />
-							<RightPanelSkeleton />
-						</>
-					)}
-
-					{/* Suggested Users */}
-					{!isLoading &&
-						suggestedUsers?.map((user) => (
-							<Link
-								to={`/profile/${user.username}`}
-								className='flex items-center justify-between gap-4'
-								key={user._id}
-							>
-								<div className='flex gap-2 items-center'>
-									<div className='avatar'>
-										<div className='w-8 rounded-full'>
-											<img src={user.profileImg || "/avatar-placeholder.png"} />
-										</div>
-									</div>
-									<div className='flex flex-col'>
-										<span className='font-semibold tracking-tight truncate w-28'>
-											{user.fullName}
-										</span>
-										<span className='text-sm text-slate-500'>@{user.username}</span>
-									</div>
-								</div>
-								<div>
-									<button
-										className='btn bg-white text-black hover:bg-white hover:opacity-90 rounded-full btn-sm'
-										onClick={(e) => {
-											e.preventDefault();
-											follow(user._id);
-										}}
-									>
-										{isPending ? <LoadingSpinner size='sm' /> : "Follow"}
-									</button>
-								</div>
-							</Link>
-						))}
-
-					{/* "See All" Button */}
-					<div className='text-center mt-4'>
-						<button
-							className='btn bg-transparent text-white border border-slate-500 hover:bg-slate-700 rounded-full btn-sm'
-							onClick={() => navigate("/followPage")}
-						>
-							See All
-						</button>
-					</div>
-				</div>
-			</div>
-		</div>
-	);
+  return (
+    <div className="w-full border border-gray-800 bg-transparent p-0 mt-2 sticky top-20">
+      {/* Header with title */}
+      <div className="px-4 pt-4 pb-2 border-b border-gray-800">
+        <p className="font-bold text-base text-white">Suggested Developers</p>
+      </div>
+      {/* Loading Skeletons */}
+      {isLoading && (
+        <div className="flex flex-col gap-4 p-4">
+          <RightPanelSkeleton />
+          <RightPanelSkeleton />
+          <RightPanelSkeleton />
+        </div>
+      )}
+      {/* Vertical List of Suggested Users */}
+      {!isLoading && (
+        <div className="flex flex-col gap-1 px-2 py-2">
+          {suggestedUsers?.slice(0, 5).map((user) => (
+            <div
+              key={user._id}
+              className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-[#222b36] transition"
+            >
+              {/* Profile Image */}
+              <Link to={`/profile/${user.username}`}> 
+                <img
+                  src={user.profileImg || "/avatar-placeholder.png"}
+                  alt={user.username}
+                  className="w-11 h-11 rounded-full object-cover border-2 border-[#FF5722]"
+                />
+              </Link>
+              {/* Name and Username */}
+              <div className="flex-1 min-w-0">
+                <Link to={`/profile/${user.username}`}> 
+                  <p className="font-semibold text-white text-sm truncate">{user.fullName}</p>
+                  <p className="text-xs text-gray-400 truncate">@{user.username}</p>
+                </Link>
+              </div>
+              {/* Follow Button */}
+              <button
+                onClick={(e) => handleFollow(user._id, e)}
+                disabled={isPending}
+                className={`ml-2 px-4 py-1 text-xs font-medium text-white rounded-full transition
+                  bg-[#FF5722] hover:bg-[#FF8A65] 
+                  ${isPending ? 'bg-[#FF8A65] cursor-not-allowed' : ''}`}
+              >
+                {isPending ? <LoadingSpinner size="xs" /> : "Follow"}
+              </button>
+            </div>
+          ))}
+          {/* See all button */}
+          <Link
+            to="/followPage"
+            className="block w-full mt-2 mb-2 text-center text-sm font-semibold text-[#FF5722] hover:underline py-2 border-t border-gray-800"
+          >
+            See all
+          </Link>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default RightPanel;

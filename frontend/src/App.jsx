@@ -3,7 +3,6 @@ import HomePage from "./pages/home/HomePage"
 import SignUpPage from "./pages/auth/signup/SignUpPage"
 import LoginPage from "./pages/auth/login/LoginPage"
 import Sidebar from "./components/common/Sidebar"
-import RightPanel from "./components/common/RightPanel"
 import NotificationPage from "./pages/notificaiton/NotificationPage"
 import ProfilePage from "./pages/profile/ProfilePage"
 import { Toaster } from "react-hot-toast"
@@ -12,7 +11,7 @@ import LoadingSpinner from "./components/common/LoadingSpinner"
 import FollowPage from "./pages/home/FollowPage"
 import FollowersFollowing from "./pages/profile/FollowersFollowing"
 import SearchPage from "./pages/Search/SearchPage"
-
+import Navbar from "./components/common/Navbar";
 
 function App() {
   const { pathname } = useLocation();
@@ -26,7 +25,6 @@ function App() {
           if(!res.ok) {
             throw new Error(data.error || "Something went wrong")
           }
-          console.log("authUser is here:",data)
           return data;
         }
         catch(error){
@@ -42,25 +40,30 @@ function App() {
       <LoadingSpinner size='lg'/>
      </div>
     )
-    }
+  }
+  
   return (
-    <div className='flex max-w-6xl mx-auto'>
-      {authUser && <Sidebar />}
-      <Routes>
-        <Route path='/' element={authUser ? <HomePage /> : <Navigate to="/login" />} />
-				<Route path='/login' element={!authUser ? <LoginPage /> : <Navigate to="/" />} />
-				<Route path='/signup' element={!authUser ? <SignUpPage />: <Navigate to="/" />} />
-				<Route path='/notifications' element={authUser ? <NotificationPage /> : <Navigate to="/login" />} />
-				<Route path='/profile/:username' element={authUser ? <ProfilePage />: <Navigate to="/login" />} />
-        <Route path='/followPage' element={authUser ? <FollowPage /> : <Navigate to="/login" />} />
-        <Route path="/followFollowing/:username/:type" element={authUser ? <FollowersFollowing /> : <Navigate to="/login" />} />
-        <Route path="/search" element={authUser ? <SearchPage /> : <Navigate to="/login" />} />
-
-      </Routes>
-      {authUser && pathname !== "/followPage" && <RightPanel />}
+    <div className="flex flex-col w-full bg-black min-h-screen">
+      {authUser && <Navbar />}
+      <div className="flex flex-1 w-full">
+        {authUser && <Sidebar />}
+        <div className="flex-1">
+          <Routes>
+            <Route path='/' element={authUser ? <HomePage /> : <Navigate to="/login" />} />
+            <Route path='/login' element={!authUser ? <LoginPage /> : <Navigate to="/" />} />
+            <Route path='/signup' element={!authUser ? <SignUpPage />: <Navigate to="/" />} />
+            <Route path='/notifications' element={authUser ? <NotificationPage /> : <Navigate to="/login" />} />
+            <Route path='/profile/:username' element={authUser ? <ProfilePage />: <Navigate to="/login" />} />
+            <Route path='/followPage' element={authUser ? <FollowPage /> : <Navigate to="/login" />} />
+            <Route path="/followFollowing/:username/:type" element={authUser ? <FollowersFollowing /> : <Navigate to="/login" />} />
+            <Route path="/search" element={authUser ? <SearchPage /> : <Navigate to="/login" />} />
+          </Routes>
+        </div>
+      </div>
       <Toaster />
     </div>
   )
 }
 
 export default App
+

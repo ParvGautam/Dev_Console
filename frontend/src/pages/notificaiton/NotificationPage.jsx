@@ -43,56 +43,59 @@ const NotificationPage = () => {
 			queryClient.invalidateQueries({ queryKey: ["notifications"] });
 		},
 		onError: (error) => {
-			toast.error(error.message);
+			toast.error("Something Went Wrong");
+			console.error(error.message);
 		},
 	});
 
 	return (
-		<>
-			<div className='flex-[4_4_0] border-l border-r border-gray-700 min-h-screen'>
-				<div className='flex justify-between items-center p-4 border-b border-gray-700'>
-					<p className='font-bold'>Notifications</p>
-					<div className='dropdown '>
-						<div tabIndex={0} role='button' className='m-1'>
-							<IoSettingsOutline className='w-4' />
-						</div>
-						<ul
-							tabIndex={0}
-							className='dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52'
-						>
-							<li>
-								<a onClick={deleteNotifications}>Delete all notifications</a>
-							</li>
-						</ul>
+		<div className="flex-[4_4_0] min-h-screen bg-black">
+			{/* Sticky Header */}
+			<div className="sticky top-0 z-10 bg-black flex justify-between items-center p-6 border-b border-gray-700">
+				<p className="font-bold text-2xl text-white">Notifications</p>
+				<div className="dropdown dropdown-end">
+					<div tabIndex={0} role='button' className='m-1 p-2 rounded-full hover:bg-[#23272F] transition'>
+						<IoSettingsOutline className='w-6 h-6 text-gray-400' />
+					</div>
+					<ul
+						tabIndex={0}
+						className='dropdown-content z-[1] menu p-2 shadow-lg bg-[#23272F] rounded-xl w-56 border border-gray-700'
+					>
+						<li>
+							<a onClick={deleteNotifications} className="text-red-500 font-semibold cursor-pointer">Delete all notifications</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+			{isLoading && (
+				<div className='flex justify-center h-full items-center py-16'>
+					<LoadingSpinner size='lg' />
+				</div>
+			)}
+			{notifications?.length === 0 && <div className='text-center p-8 font-bold text-gray-400 text-lg'>No notifications 🤔</div>}
+			<div className="flex flex-col gap-4 p-4">
+			{notifications?.map((notification) => (
+				<div className='bg-[#23272F] rounded-xl shadow border border-gray-800 p-4 flex items-center gap-4' key={notification._id}>
+					{/* Icon */}
+					{notification.type === "follow" && <FaUser className='w-7 h-7 text-[#FF5722]' />}
+					{notification.type === "like" && <FaHeart className='w-7 h-7 text-[#FF0060]' />}
+					{/* Avatar */}
+					<Link to={`/profile/${notification.from.username}`}> 
+						<img src={notification.from.profileImg || "/avatar-placeholder.png"} className="w-10 h-10 rounded-full object-cover border-2 border-[#FF5722]" alt={notification.from.username} />
+					</Link>
+					{/* Info */}
+					<div className='flex flex-col'>
+						<Link to={`/profile/${notification.from.username}`} className="flex items-center gap-2">
+							<span className='font-bold text-white'>@{notification.from.username}</span>
+							<span className='text-gray-400 text-sm'>
+								{notification.type === "follow" ? "followed you" : "liked your post"}
+							</span>
+						</Link>
 					</div>
 				</div>
-				{isLoading && (
-					<div className='flex justify-center h-full items-center'>
-						<LoadingSpinner size='lg' />
-					</div>
-				)}
-				{notifications?.length === 0 && <div className='text-center p-4 font-bold'>No notifications 🤔</div>}
-				{notifications?.map((notification) => (
-					<div className='border-b border-gray-700' key={notification._id}>
-						<div className='flex gap-2 p-4'>
-							{notification.type === "follow" && <FaUser className='w-7 h-7 text-primary' />}
-							{notification.type === "like" && <FaHeart className='w-7 h-7 text-red-500' />}
-							<Link to={`/profile/${notification.from.username}`}>
-								<div className='avatar'>
-									<div className='w-8 rounded-full'>
-										<img src={notification.from.profileImg || "/avatar-placeholder.png"} />
-									</div>
-								</div>
-								<div className='flex gap-1'>
-									<span className='font-bold'>@{notification.from.username}</span>{" "}
-									{notification.type === "follow" ? "followed you" : "liked your post"}
-								</div>
-							</Link>
-						</div>
-					</div>
-				))}
+			))}
 			</div>
-		</>
+		</div>
 	);
 };
 export default NotificationPage;

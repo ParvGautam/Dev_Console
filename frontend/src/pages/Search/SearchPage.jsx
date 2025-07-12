@@ -11,7 +11,8 @@ const SearchPage = () => {
   const { handleFollowAction, isPending: isFollowPending } = useFollow();
 
   // Debounce search query
-  const handleSearch = (e) => {
+  const handleSearch = (e) => { 
+  
     setSearchQuery(e.target.value);
     clearTimeout(window.searchTimeout);
     window.searchTimeout = setTimeout(() => {

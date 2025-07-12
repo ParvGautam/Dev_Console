@@ -86,7 +86,7 @@ export const getSuggestedUsers = async (req, res) =>{
         ])
 
         const filterUsers= users.filter(user=>!userFollowedByMe.following.includes(user._id))
-        const suggestedUsers=filterUsers.slice(0,4)
+        const suggestedUsers=filterUsers.slice(0,10)
 
         suggestedUsers.forEach(user=>user.password=null)
         
@@ -200,14 +200,16 @@ export const updateUser= async (req,res)=>{
 
         if(profileImg){
             if(user.profileImg){
-                await cloudinary.uploader.destroy(user.profileImg.split("/")).pop().split(".")[0];
+                const publicId = user.profileImg.split("/").pop().split(".")[0];
+                await cloudinary.uploader.destroy(publicId);
             }
             const uploadedResponse=await cloudinary.uploader.upload(profileImg)
             profileImg=uploadedResponse.secure_url;
         }
         if(coverImg){
             if(user.coverImg){
-                await cloudinary.uploader.destroy(user.coverImg.split("/")).pop().split(".")[0];
+                const publicId = user.coverImg.split("/").pop().split(".")[0];
+                await cloudinary.uploader.destroy(publicId);
             }
 
             const uploadedResponse=await cloudinary.uploader.upload(coverImg);
