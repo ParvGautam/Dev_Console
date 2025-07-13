@@ -19,11 +19,14 @@ if (process.env.NODE_ENV !== 'production') {
   dotenv.config();
 }
 
-cloudinary.config({
-	cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-	api_key: process.env.CLOUDINARY_API_KEY,
-	api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+// Configure Cloudinary only if credentials are available
+if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+	cloudinary.config({
+		cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+		api_key: process.env.CLOUDINARY_API_KEY,
+		api_secret: process.env.CLOUDINARY_API_SECRET,
+	});
+}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -48,15 +51,23 @@ app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/notifications", notificationRoutes);
 
-if (process.env.NODE_ENV === "production") {
-	app.use(express.static(path.join(__dirname, "/frontend/dist")));
+// Health check endpoint
+app.get("/", (req, res) => {
+	res.json({ 
+		message: "API is working!", 
+		timestamp: new Date().toISOString(),
+		env: process.env.NODE_ENV,
+		mongoUri: process.env.MONGO_URI ? "Set" : "Not set"
+	});
+});
 
-	app.get("*", (req, res) => {
-		res.sendFile(path.resolve(__dirname, "frontend", "dist", "index.html"));
+// For local development
+if (process.env.NODE_ENV !== "production") {
+	app.listen(PORT, () => {
+		console.log(`Server is running on port ${PORT}`);
+		connectMongoDB();
 	});
 }
 
-app.listen(PORT, () => {
-	console.log(`Server is running on port ${PORT}`);
-	connectMongoDB();
-});
+// For Vercel serverless deployment
+export default app;
