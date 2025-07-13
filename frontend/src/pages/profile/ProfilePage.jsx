@@ -190,33 +190,33 @@ const ProfilePage = () => {
                       <IoCalendarOutline className="w-3 h-3" />
                       Joined {memberSinceDate}
                     </span>
-                  </div>
+              </div>
                   {/* Bottom section - Action buttons */}
                   <div className="flex flex-row gap-3">
-                    {isMyProfile && <EditProfileModal authUser={authUser} />}
-                    {!isMyProfile && (
-                      <button
+                {isMyProfile && <EditProfileModal authUser={authUser} />}
+                {!isMyProfile && (
+                  <button
                         className="btn btn-outline rounded-full btn-sm border-[#FF5722] text-[#FF5722] hover:bg-[#FF5722] hover:text-white font-bold px-6"
-                        onClick={() => follow(user?._id)}
-                      >
-                        {isPending && "Loading..."}
-                        {!isPending && amIFollowing && "Unfollow"}
-                        {!isPending && !amIFollowing && "Follow"}
-                      </button>
-                    )}
-                    {(coverImg || profileImg) && (
-                      <button
+                    onClick={() => follow(user?._id)}
+                  >
+                    {isPending && "Loading..."}
+                    {!isPending && amIFollowing && "Unfollow"}
+                    {!isPending && !amIFollowing && "Follow"}
+                  </button>
+                )}
+                {(coverImg || profileImg) && (
+                  <button
                         className="btn rounded-full btn-sm text-white px-6 bg-[#00FFDD] hover:bg-[#E8FFC2] border-0"
-                        onClick={async () => {
-                          await updateProfile({ coverImg, profileImg });
-                          setProfileImg(null);
-                          setCoverImg(null);
-                        }}
-                      >
-                        {isUpdatingProfile ? "Updating..." : "Update"}
-                      </button>
-                    )}
-                  </div>
+                    onClick={async () => {
+                      await updateProfile({ coverImg, profileImg });
+                      setProfileImg(null);
+                      setCoverImg(null);
+                    }}
+                  >
+                    {isUpdatingProfile ? "Updating..." : "Update"}
+                  </button>
+                )}
+              </div>
                 </div>
               </div>
               {/* Tabs for Posts/Likes */}
