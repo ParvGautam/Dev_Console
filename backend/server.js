@@ -2,6 +2,7 @@ import path from "path";
 import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 import { v2 as cloudinary } from "cloudinary";
 
 import authRoutes from "./routes/auth.routes.js";
@@ -11,7 +12,12 @@ import notificationRoutes from "./routes/notification.routes.js";
 
 import connectMongoDB from "./db/connectMongoDB.js";
 
-dotenv.config({ path: '../.env' });
+// Load environment variables - works for both local development and Vercel deployment
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config({ path: '../.env' });
+} else {
+  dotenv.config();
+}
 
 cloudinary.config({
 	cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -22,6 +28,14 @@ cloudinary.config({
 const app = express();
 const PORT = process.env.PORT || 5000;
 const __dirname = path.resolve();
+
+// CORS configuration
+app.use(cors({
+  origin: process.env.NODE_ENV === "production" 
+    ? [process.env.FRONTEND_URL || "https://your-frontend-domain.vercel.app"]
+    : "http://localhost:3000",
+  credentials: true
+}));
 
 app.use(express.json({ limit: "5mb" })); // to parse req.body
 // limit shouldn't be too high to prevent DOS
