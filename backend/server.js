@@ -11,7 +11,7 @@ import notificationRoutes from "./routes/notification.routes.js";
 
 import connectMongoDB from "./db/connectMongoDB.js";
 
-dotenv.config({ path: '../.env' });
+dotenv.config();
 
 cloudinary.config({
 	cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
